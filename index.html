@@ -531,7 +531,7 @@
     }
 
     .staff-filter:focus { border-color: rgba(245, 203, 139, 0.48); }
-    .staff-save-status { color: var(--muted); font-size: 11px; text-align: right; }
+    .staff-readonly-status { color: var(--muted); font-size: 11px; text-align: right; }
 
     .data-table {
       width: 100%;
@@ -562,8 +562,7 @@
       color: var(--muted);
     }
 
-    .data-table.staff-table td[contenteditable="true"] { min-width: 110px; cursor: text; }
-    .data-table.staff-table td[contenteditable="true"]:focus { outline: 2px solid rgba(245, 203, 139, 0.5); outline-offset: -2px; background: rgba(245, 203, 139, 0.07); color: var(--text); }
+    .data-table.staff-table td { min-width: 110px; }
     .data-table.staff-table td:first-child { position: sticky; left: 0; z-index: 1; background: #182128; color: var(--text); text-align: center; }
     .data-table.staff-table th:first-child { left: 0; z-index: 3; }
 
@@ -829,12 +828,12 @@
         const cells = staffColumns.slice(1).map((column, columnIndex) => {
           const cellKey = `${rowIndex}:${columnIndex + 1}`;
           const value = escapeHtml(String(state.staffData[cellKey] || ''));
-          return `<td contenteditable="true" spellcheck="false" role="textbox" aria-label="${column}, строка ${rowIndex + 1}" data-staff-cell="${cellKey}">${value}</td>`;
+          return `<td>${value}</td>`;
         }).join('');
         return `<tr data-staff-row><td>${rowIndex + 1}</td>${cells}</tr>`;
       }).join('');
 
-      return `<div class="staff-table-toolbar"><input class="staff-filter" id="staffFilter" type="search" placeholder="Поиск по заполненным строкам..." autocomplete="off"><span class="staff-save-status" id="staffSaveStatus" aria-live="polite">Изменения сохраняются в этом браузере</span></div><div class="table-scroll"><table id="staffTable" class="data-table staff-table"><thead><tr>${staffColumns.map(column => `<th scope="col">${column}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+      return `<div class="staff-table-toolbar"><input class="staff-filter" id="staffFilter" type="search" placeholder="Поиск по таблице..." autocomplete="off"><span class="staff-readonly-status">Только просмотр</span></div><div class="table-scroll"><table id="staffTable" class="data-table staff-table"><thead><tr>${staffColumns.map(column => `<th scope="col">${column}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
     }
 
     function renderDataTable(columns, tableClass, emptyMessage) {
@@ -966,9 +965,9 @@
             <div id="searchResults" class="search-results" hidden></div>
             ${state.activePage === 'staff' ? `
               <section class="data-table-card" aria-label="Таблица персонала">
-                <header class="data-table-head"><h2>Таблица администрации Mandarin RU Medium RP</h2><a class="download-template" href="./personnel-medium-rp.xlsx" download>Excel-шаблон</a></header>
+                <header class="data-table-head"><h2>Таблица администрации Mandarin RU Medium RP</h2><span class="staff-readonly-status">Только просмотр</span></header>
                 ${renderStaffTable()}
-                <div class="table-footnote">Заполняй таблицу прямо здесь. Изменения сохраняются локально в этом браузере и не синхронизируются с другими сотрудниками. Реальные данные со скриншота не импортированы.</div>
+                <div class="table-footnote">Реальные записи сотрудников пока не загружены: в проекте есть только пустой шаблон, а не исходная таблица. Для точного заполнения нужен оригинальный XLSX/CSV.</div>
               </section>
             ` : state.activePage === 'violations' ? `
               <section class="data-table-card" aria-label="Таблица частых нарушителей">
@@ -1064,18 +1063,6 @@
 
       const staffTable = document.getElementById('staffTable');
       if (staffTable) {
-        staffTable.addEventListener('input', event => {
-          const cell = event.target.closest('[data-staff-cell]');
-          if (!cell) return;
-          state.staffData[cell.dataset.staffCell] = cell.textContent.trim();
-          try {
-            localStorage.setItem(staffStorageKey, JSON.stringify(state.staffData));
-            document.getElementById('staffSaveStatus').textContent = 'Сохранено в этом браузере';
-          } catch {
-            document.getElementById('staffSaveStatus').textContent = 'Автосохранение недоступно';
-          }
-        });
-
         document.getElementById('staffFilter').addEventListener('input', event => {
           const query = event.target.value.trim().toLocaleLowerCase('ru');
           staffTable.querySelectorAll('[data-staff-row]').forEach(row => {
