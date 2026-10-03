@@ -78,12 +78,6 @@
       overflow: hidden;
       box-shadow: 0 24px 60px var(--shadow);
       backdrop-filter: blur(16px);
-      animation: fadeUp 0.5s ease both;
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
     }
 
     .topbar {
@@ -117,12 +111,6 @@
       place-items: center;
       font-size: 20px;
       box-shadow: 0 10px 16px rgba(239, 185, 97, 0.25);
-      animation: pulse 2.8s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.08); }
     }
 
     .brand-text {
@@ -169,7 +157,6 @@
 
     .tab:hover {
       border-color: rgba(255,255,255,0.12);
-      transform: translateY(-1px);
     }
 
     .tab.active {
@@ -351,6 +338,58 @@
 
     .search-wrap input::placeholder { color: var(--muted); }
 
+    .search-results {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: -8px 0 18px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel-strong);
+    }
+
+    .search-results[hidden] { display: none; }
+
+    .search-result {
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: var(--soft);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .search-result:hover { border-color: rgba(245, 203, 139, 0.4); }
+    .search-empty { color: var(--muted); padding: 8px; }
+
+    .development {
+      min-height: 190px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(145deg, rgba(255,255,255,0.025), rgba(255,255,255,0.01));
+      text-align: left;
+    }
+
+    .development-mark {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(245, 203, 139, 0.24);
+      border-radius: 14px;
+      color: var(--gold);
+      background: rgba(245, 203, 139, 0.08);
+    }
+
+    .development h2 { margin: 0 0 6px; font-size: 20px; }
+    .development p { margin: 0; color: var(--muted); font-size: 14px; }
+
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -361,19 +400,7 @@
       padding: 18px 18px 16px;
       position: relative;
       overflow: hidden;
-      opacity: 0;
-      transform: translateY(8px);
-      animation: cardIn 0.35s ease forwards;
-      transition: transform 0.2s ease, border-color 0.2s ease;
-    }
-
-    .panel-card:hover {
-      transform: translateY(-2px);
-      border-color: rgba(255,255,255,0.12);
-    }
-
-    @keyframes cardIn {
-      to { opacity: 1; transform: translateY(0); }
+      transition: border-color 0.2s ease;
     }
 
     .panel-card::before {
@@ -447,6 +474,7 @@
       .cards-grid { grid-template-columns: 1fr; }
       .topbar { padding: 14px 16px; }
       .brand-name { letter-spacing: 0.06em; }
+      .development { min-height: 150px; padding: 20px; }
     }
   </style>
 </head>
@@ -454,106 +482,54 @@
   <div id="app"></div>
 
   <script>
+    const pages = {
+      home: { label: 'Главная', title: 'Администрация Minecraft', subtitle: 'Рабочее пространство администрации проекта Mandarin Games.' },
+      guide: { label: 'Руководство', title: 'Руководство отдела', subtitle: 'Материалы и инструкции администрации.' },
+      staff: { label: 'Персонал', title: 'Персонал проекта', subtitle: 'Состав администрации и распределение ролей.' },
+      violations: { label: 'Таблица частых нарушителей', title: 'Частые нарушители', subtitle: 'Таблица учёта нарушений администрации Minecraft.' },
+      cassie: { label: 'C.A.S.S.I.E.', title: 'C.A.S.S.I.E.', subtitle: 'Раздел C.A.S.S.I.E. администрации проекта.' }
+    };
+
     const state = {
-      activeTab: 'home',
-      query: ''
+      activePage: 'home',
+      query: '',
+      searchTimer: null
     };
 
-    const tabs = {
-      home: {
-        label: 'Главная',
-        heroTitle: 'Администрация <span class="accent">Minecraft</span>',
-        subtitle: 'Мягкая структура отдела, быстрый обзор активностей и доступ к ключевым разделам без перегруза интерфейса.',
-        chips: ['Онлайн 24/7', 'Открытый доступ', 'Стабильный режим'],
-        cards: [
-          { tag: 'overview', title: 'Руководство', text: 'Ключевые указания для команды и порядок работы в сменах. Быстрая навигация без лишнего шумового контента.', badge: '12', type: 'gold' },
-          { tag: 'staff', title: 'Персонал', text: 'Сводка сотрудников, назначений и текущей загрузки отдела. Контур раздела остаётся компактным и понятным.', badge: '07', type: 'soft' },
-          { tag: 'rules', title: 'Политика', text: 'Основные правила и принципы работы. Всё видно сразу, без длинных блоков и перегруженных вкладок.', badge: '03', type: 'soft' },
-          { tag: 'archive', title: 'Архив', text: 'Шаблоны, новости и служебные заметки для внутреннего просмотра и оперативной коммуникации.', badge: '19', type: 'gold' },
-          { tag: 'team', title: 'Команды', text: 'Роли внутри проекта с понятными статусами и быстрым разграничением ответственности.', badge: '05', type: 'soft' },
-          { tag: 'system', title: 'Система', text: 'Обзор статуса, подключений, проверок и текущего состояния сервисов администрации.', badge: '09', type: 'gold' }
-        ]
-      },
-      guide: {
-        label: 'Руководство',
-        heroTitle: 'Руководство <span class="accent">отдела</span>',
-        subtitle: 'Внутренняя структура, порядок действий и приоритеты в коммуникации. Всё сформировано в понятную форму без лишней громоздкости.',
-        chips: ['Регламент', 'Контроль', 'Порядок'],
-        cards: [
-          { tag: 'intro', title: 'Вводный раздел', text: 'Перед началом смены администрация сверяет статус задач, актуальность инструкций и список приоритетов.', badge: '01', type: 'gold' },
-          { tag: 'process', title: 'Рабочий поток', text: 'Все решения проходят через понятный путь: проверка, согласование, фиксация, закрытие.', badge: '02', type: 'soft' },
-          { tag: 'discipline', title: 'Дисциплина', text: 'Поддержание порядка и спокойного взаимодействия внутри команды является основным приоритетом.', badge: '03', type: 'soft' },
-          { tag: 'coordination', title: 'Координация', text: 'У каждого ответственного остаётся понятный список задач и зона контроля.', badge: '04', type: 'gold' }
-        ]
-      },
-      staff: {
-        label: 'Персонал',
-        heroTitle: 'Персонал <span class="accent">проекта</span>',
-        subtitle: 'Система учёта сотрудников и распределение обязанностей внутри отделения без перегруженного интерфейса.',
-        chips: ['Список', 'Статусы', 'Загрузка'],
-        cards: [
-          { tag: 'lead', title: 'Лидеры', text: 'Руководители отдела контролируют приоритеты, распределение смен и режим внутренней связи.', badge: 'A', type: 'gold' },
-          { tag: 'mods', title: 'Модераторы', text: 'Блок поддерживает оперативную реакцию и ежедневное сопровождение рабочих процессов.', badge: 'M', type: 'soft' },
-          { tag: 'helpers', title: 'Помощники', text: 'Поддержка выполнения задач и внутренние операции, связанные с коммуникациями и патрулями.', badge: 'H', type: 'soft' },
-          { tag: 'admins', title: 'Администраторы', text: 'Служебный уровень с полным кругом ответственности и прав по управлению режимом системы.', badge: 'AD', type: 'gold' }
-        ]
-      },
-      violations: {
-        label: 'Нарушения',
-        heroTitle: 'Нарушения <span class="accent">и реакции</span>',
-        subtitle: 'Быстрая фиксация инцидентов, работа с предупреждениями и поддержание порядка через чёткие правила.',
-        chips: ['Проверка', 'Решение', 'Контроль'],
-        cards: [
-          { tag: 'warn', title: 'Предупреждения', text: 'Мягкая система замечаний позволяет оперативно реагировать на проблемы без лишней напряжённости.', badge: 'W', type: 'soft' },
-          { tag: 'report', title: 'Жалобы', text: 'Служебный формат обращений позволяет фиксировать проблему, причину и корректную реакцию команды.', badge: 'R', type: 'gold' },
-          { tag: 'audit', title: 'Аудит', text: 'Отслеживание повторных нарушений и распределение ответственности между участниками.', badge: 'A', type: 'soft' },
-          { tag: 'case', title: 'Кейсы', text: 'Детализация событий и корректное закрытие вопросов в рамках внутреннего регламента.', badge: 'C', type: 'gold' }
-        ]
-      },
-      system: {
-        label: 'Система',
-        heroTitle: 'Служебная <span class="accent">система</span>',
-        subtitle: 'Статус платформы, исправность сервисов и актуальная сводка по внутренним модулям проекта.',
-        chips: ['Проверка', 'Сервис', 'Режим'],
-        cards: [
-          { tag: 'status', title: 'Состояние', text: 'Панель статусов отражает текущую ситуацию по сервисам и уровню доступности процессов.', badge: 'OK', type: 'gold' },
-          { tag: 'links', title: 'Связь', text: 'Доступ к основным каналам, связям и проходам обмена внутренней информации.', badge: 'NET', type: 'soft' },
-          { tag: 'logs', title: 'Логи', text: 'Запись действий и заметки по актуальным событиям позволяют не терять контекст.', badge: 'LOG', type: 'soft' },
-          { tag: 'backup', title: 'Резерв', text: 'Резервные скрипты и внутренние копии обеспечивают устойчивость рабочего режима.', badge: 'BKP', type: 'gold' }
-        ]
+    function renderSearchResults() {
+      const query = state.query.trim().toLocaleLowerCase('ru');
+      const results = document.getElementById('searchResults');
+      if (!results) return;
+
+      if (!query) {
+        results.innerHTML = '';
+        results.hidden = true;
+        return;
       }
-    };
 
-    function getVisibleCards() {
-      const q = state.query.trim().toLowerCase();
-      const current = tabs[state.activeTab];
+      const matches = Object.entries(pages).filter(([, page]) =>
+        `${page.label} ${page.title} ${page.subtitle}`.toLocaleLowerCase('ru').includes(query)
+      );
 
-      return current.cards.filter(card => {
-        if (!q) return true;
-        const text = [card.tag, card.title, card.text, card.badge].join(' ').toLowerCase();
-        return text.includes(q);
+      results.hidden = false;
+      results.innerHTML = matches.length
+        ? matches.map(([key, page]) => `<button class="search-result" data-result="${key}">${page.label}</button>`).join('')
+        : '<span class="search-empty">Ничего не найдено</span>';
+
+      results.querySelectorAll('[data-result]').forEach(button => {
+        button.addEventListener('click', () => {
+          state.activePage = button.dataset.result;
+          state.query = '';
+          render();
+        });
       });
     }
 
     function render() {
-      const activeTab = tabs[state.activeTab];
-      const nav = Object.entries(tabs).map(([key, item]) => `
-        <button class="tab ${state.activeTab === key ? 'active' : ''}" data-tab="${key}">${item.label}</button>
+      const page = pages[state.activePage];
+      const nav = Object.entries(pages).map(([key, item]) => `
+        <button class="tab ${state.activePage === key ? 'active' : ''}" data-page="${key}">${item.label}</button>
       `).join('');
-
-      const visibleCards = getVisibleCards();
-      const cards = visibleCards.length
-        ? visibleCards.map(card => `
-            <article class="panel-card ${card.type === 'gold' ? 'gold' : ''}">
-              <div class="card-top">
-                <span class="card-tag">${card.tag}</span>
-                <span class="card-badge">${card.badge}</span>
-              </div>
-              <h3>${card.title}</h3>
-              <p>${card.text}</p>
-            </article>
-          `).join('')
-        : '<div class="empty">Ничего не найдено по вашему запросу.</div>';
 
       document.getElementById('app').innerHTML = `
         <div class="shell">
@@ -562,83 +538,52 @@
               <div class="brand-mark">🍊</div>
               <div class="brand-text">
                 <div class="brand-name">Mandarin Games</div>
-                <div class="brand-sub">Administration</div>
+                <div class="brand-sub">Administration Minecraft</div>
               </div>
             </div>
-            <nav class="tabs" aria-label="Основные разделы">
-              ${nav}
-            </nav>
+            <nav class="tabs" aria-label="Основные разделы">${nav}</nav>
           </header>
-
           <div class="content-wrap">
-            <div class="hero">
-              <section class="hero-panel">
-                <div class="eyebrow">${activeTab.label}</div>
-                <h1>${activeTab.heroTitle}</h1>
-                <div class="subtitle">${activeTab.subtitle}</div>
-                <div class="utility-row">
-                  ${activeTab.chips.map(chip => `<span class="chip ${chip === 'Онлайн 24/7' ? 'notice' : 'good'}">${chip}</span>`).join('')}
-                </div>
-              </section>
-
-              <aside class="side-panel">
-                <div class="status-box">
-                  <div>
-                    <div class="status-label">Status</div>
-                    <div class="status-value">Служба активна</div>
-                  </div>
-                  <div class="status-dot"></div>
-                </div>
-
-                <div class="status-box">
-                  <div>
-                    <div class="status-label">Team</div>
-                    <div class="status-value">Mandarin Games</div>
-                  </div>
-                </div>
-
-                <div class="status-box">
-                  <div>
-                    <div class="status-label">Mode</div>
-                    <div class="status-value">Soft admin</div>
-                  </div>
-                </div>
-              </aside>
+            <section class="hero-panel">
+              <div class="eyebrow">${page.label}</div>
+              <h1>${page.title}</h1>
+              <div class="subtitle">${page.subtitle}</div>
+            </section>
+            <div class="search-wrap" aria-label="Поиск по разделам">
+              <span aria-hidden="true">⌕</span>
+              <input id="searchInput" type="search" placeholder="Поиск по разделам..." autocomplete="off" />
             </div>
-
-            <div class="search-wrap" aria-label="Поиск по разделу">
-              <span>⌕</span>
-              <input id="searchInput" type="text" value="${state.query}" placeholder="Поиск по разделу..." autocomplete="off" />
-            </div>
-
-            <div class="cards-grid">
-              ${cards}
-            </div>
+            <div id="searchResults" class="search-results" hidden></div>
+            <section class="development" aria-live="polite">
+              <span class="development-mark">✦</span>
+              <div>
+                <h2>В разработке</h2>
+                <p>Этот раздел появится позже.</p>
+              </div>
+            </section>
           </div>
         </div>
       `;
 
-      const searchInput = document.getElementById('searchInput');
-      if (searchInput) {
-        searchInput.addEventListener('input', (event) => {
-          state.query = event.target.value;
-          render();
-        });
-      }
-
-      document.querySelectorAll('[data-tab]').forEach(button => {
+      document.querySelectorAll('[data-page]').forEach(button => {
         button.addEventListener('click', () => {
-          state.activeTab = button.dataset.tab;
+          state.activePage = button.dataset.page;
           state.query = '';
-          history.replaceState(null, '', '#' + state.activeTab);
+          history.replaceState(null, '', '#' + state.activePage);
           render();
         });
       });
+
+      const searchInput = document.getElementById('searchInput');
+      searchInput.addEventListener('input', event => {
+        state.query = event.target.value;
+        window.clearTimeout(state.searchTimer);
+        state.searchTimer = window.setTimeout(renderSearchResults, 300);
+      });
     }
 
-    const initialHash = (window.location.hash || '').replace('#', '');
-    if (tabs[initialHash]) state.activeTab = initialHash;
-
+    const initialPage = window.location.hash.slice(1);
+    if (pages[initialPage]) state.activePage = initialPage;
     render();
   </script>
 </body>
