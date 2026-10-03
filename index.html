@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0d1217">
+  <title>Mandarin Games — Administration</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      --bg: #0b1117;
+      --bg-2: #121d24;
+      --panel: rgba(18, 27, 33, 0.9);
+      --panel-strong: rgba(11, 17, 23, 0.96);
+      --surface: rgba(25, 35, 42, 0.9);
+      --soft: rgba(255,255,255,0.04);
+      --line: rgba(255,255,255,0.08);
+      --line-strong: rgba(255,255,255,0.12);
+      --text: #eef2eb;
+      --muted: #b7c0b9;
+      --gold: #f5cb8b;
+      --gold-strong: #f4b766;
+      --green: #8bd9b7;
+      --rose: #ff9c8c;
+      --shadow: rgba(0, 0, 0, 0.35);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background:
+        radial-gradient(circle at 15% 18%, rgba(246, 191, 120, 0.18), transparent 18%),
+        radial-gradient(circle at 80% 12%, rgba(146, 202, 255, 0.12), transparent 22%),
+        linear-gradient(180deg, #091116 0%, #0a1117 20%, #0c151a 100%);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(2px 2px at 10% 14%, rgba(255,255,255,0.65), transparent 100%),
+        radial-gradient(1.7px 1.7px at 28% 22%, rgba(255,255,255,0.52), transparent 100%),
+        radial-gradient(1.8px 1.8px at 42% 15%, rgba(255,255,255,0.6), transparent 100%),
+        radial-gradient(2px 2px at 70% 24%, rgba(255,255,255,0.58), transparent 100%),
+        radial-gradient(1.6px 1.6px at 84% 12%, rgba(255,255,255,0.7), transparent 100%),
+        radial-gradient(1.6px 1.6px at 65% 80%, rgba(255,255,255,0.6), transparent 100%);
+      opacity: 0.9;
+      z-index: 0;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+
+    #app {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 26px 20px 40px;
+    }
+
+    .shell {
+      width: min(1180px, 100%);
+      background: rgba(12, 17, 22, 0.82);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 24px 60px var(--shadow);
+      backdrop-filter: blur(16px);
+      animation: fadeUp 0.5s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(105, 63, 36, 0.84), rgba(22, 28, 33, 0.72));
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(14px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #f6cf9a, #eaa75a);
+      color: #1f140d;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      box-shadow: 0 10px 16px rgba(239, 185, 97, 0.25);
+      animation: pulse 2.8s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+
+    .brand-text {
+      min-width: 0;
+      line-height: 1.1;
+    }
+
+    .brand-name {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .tabs {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .tab {
+      border: 1px solid transparent;
+      background: rgba(255,255,255,0.02);
+      color: rgba(255,255,255,0.8);
+      padding: 9px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: 0.2s ease;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .tab:hover {
+      border-color: rgba(255,255,255,0.12);
+      transform: translateY(-1px);
+    }
+
+    .tab.active {
+      background: rgba(245, 203, 139, 0.12);
+      border-color: rgba(245, 203, 139, 0.38);
+      color: #fff4de;
+      box-shadow: 0 8px 18px rgba(245, 203, 139, 0.14);
+    }
+
+    .content-wrap {
+      padding: 24px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 18px;
+    }
+
+    .hero-panel,
+    .side-panel,
+    .panel-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.015));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+
+    .hero-panel {
+      padding: 22px 22px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-panel::before {
+      content: "";
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(245, 203, 139, 0.18), transparent 66%);
+      right: -30px;
+      top: -30px;
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.2rem, 4vw, 4rem);
+      line-height: 0.92;
+      letter-spacing: -0.06em;
+      font-weight: 800;
+    }
+
+    .accent {
+      color: var(--gold);
+    }
+
+    .subtitle {
+      margin-top: 12px;
+      color: var(--muted);
+      max-width: 52ch;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .utility-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line-strong);
+      background: rgba(255,255,255,0.02);
+      color: var(--text);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .chip.notice {
+      color: #ffe9c1;
+      background: rgba(245, 203, 139, 0.09);
+      border-color: rgba(245, 203, 139, 0.3);
+    }
+
+    .chip.good {
+      color: #dff9ee;
+      background: rgba(139, 217, 183, 0.12);
+      border-color: rgba(139, 217, 183, 0.3);
+    }
+
+    .side-panel {
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .status-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--line);
+    }
+
+    .status-label {
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .status-value {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .status-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 22px rgba(139, 217, 183, 0.7);
+    }
+
+    .search-wrap {
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .search-wrap span {
+      width: 28px;
+      height: 28px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      background: rgba(245, 203, 139, 0.09);
+      color: var(--gold);
+      border: 1px solid rgba(245, 203, 139, 0.22);
+    }
+
+    .search-wrap input {
+      flex: 1;
+      background: transparent;
+      border: 0;
+      outline: none;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .search-wrap input::placeholder { color: var(--muted); }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .panel-card {
+      padding: 18px 18px 16px;
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(8px);
+      animation: cardIn 0.35s ease forwards;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .panel-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,0.12);
+    }
+
+    @keyframes cardIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .panel-card::before {
+      content: "";
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(245, 203, 139, 0.35), transparent);
+      opacity: 0.8;
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .card-tag {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      background: rgba(245, 203, 139, 0.08);
+      border: 1px solid rgba(245, 203, 139, 0.18);
+      padding: 6px 8px;
+      border-radius: 999px;
+    }
+
+    .card-badge {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .panel-card h3 {
+      margin: 0 0 10px;
+      font-size: clamp(1.2rem, 2vw, 1.7rem);
+      letter-spacing: -0.04em;
+    }
+
+    .panel-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 13px;
+    }
+
+    .empty {
+      padding: 22px 18px;
+      border: 1px dashed rgba(255,255,255,0.14);
+      border-radius: 16px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.01);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    @media (max-width: 940px) {
+      .hero { grid-template-columns: 1fr; }
+      .cards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .topbar { flex-direction: column; align-items: flex-start; }
+      .tabs { justify-content: flex-start; }
+    }
+
+    @media (max-width: 620px) {
+      #app { padding: 18px 12px 28px; }
+      .content-wrap { padding: 16px; }
+      .cards-grid { grid-template-columns: 1fr; }
+      .topbar { padding: 14px 16px; }
+      .brand-name { letter-spacing: 0.06em; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    const state = {
+      activeTab: 'home',
+      query: ''
+    };
+
+    const tabs = {
+      home: {
+        label: 'Главная',
+        heroTitle: 'Администрация <span class="accent">Minecraft</span>',
+        subtitle: 'Мягкая структура отдела, быстрый обзор активностей и доступ к ключевым разделам без перегруза интерфейса.',
+        chips: ['Онлайн 24/7', 'Открытый доступ', 'Стабильный режим'],
+        cards: [
+          { tag: 'overview', title: 'Руководство', text: 'Ключевые указания для команды и порядок работы в сменах. Быстрая навигация без лишнего шумового контента.', badge: '12', type: 'gold' },
+          { tag: 'staff', title: 'Персонал', text: 'Сводка сотрудников, назначений и текущей загрузки отдела. Контур раздела остаётся компактным и понятным.', badge: '07', type: 'soft' },
+          { tag: 'rules', title: 'Политика', text: 'Основные правила и принципы работы. Всё видно сразу, без длинных блоков и перегруженных вкладок.', badge: '03', type: 'soft' },
+          { tag: 'archive', title: 'Архив', text: 'Шаблоны, новости и служебные заметки для внутреннего просмотра и оперативной коммуникации.', badge: '19', type: 'gold' },
+          { tag: 'team', title: 'Команды', text: 'Роли внутри проекта с понятными статусами и быстрым разграничением ответственности.', badge: '05', type: 'soft' },
+          { tag: 'system', title: 'Система', text: 'Обзор статуса, подключений, проверок и текущего состояния сервисов администрации.', badge: '09', type: 'gold' }
+        ]
+      },
+      guide: {
+        label: 'Руководство',
+        heroTitle: 'Руководство <span class="accent">отдела</span>',
+        subtitle: 'Внутренняя структура, порядок действий и приоритеты в коммуникации. Всё сформировано в понятную форму без лишней громоздкости.',
+        chips: ['Регламент', 'Контроль', 'Порядок'],
+        cards: [
+          { tag: 'intro', title: 'Вводный раздел', text: 'Перед началом смены администрация сверяет статус задач, актуальность инструкций и список приоритетов.', badge: '01', type: 'gold' },
+          { tag: 'process', title: 'Рабочий поток', text: 'Все решения проходят через понятный путь: проверка, согласование, фиксация, закрытие.', badge: '02', type: 'soft' },
+          { tag: 'discipline', title: 'Дисциплина', text: 'Поддержание порядка и спокойного взаимодействия внутри команды является основным приоритетом.', badge: '03', type: 'soft' },
+          { tag: 'coordination', title: 'Координация', text: 'У каждого ответственного остаётся понятный список задач и зона контроля.', badge: '04', type: 'gold' }
+        ]
+      },
+      staff: {
+        label: 'Персонал',
+        heroTitle: 'Персонал <span class="accent">проекта</span>',
+        subtitle: 'Система учёта сотрудников и распределение обязанностей внутри отделения без перегруженного интерфейса.',
+        chips: ['Список', 'Статусы', 'Загрузка'],
+        cards: [
+          { tag: 'lead', title: 'Лидеры', text: 'Руководители отдела контролируют приоритеты, распределение смен и режим внутренней связи.', badge: 'A', type: 'gold' },
+          { tag: 'mods', title: 'Модераторы', text: 'Блок поддерживает оперативную реакцию и ежедневное сопровождение рабочих процессов.', badge: 'M', type: 'soft' },
+          { tag: 'helpers', title: 'Помощники', text: 'Поддержка выполнения задач и внутренние операции, связанные с коммуникациями и патрулями.', badge: 'H', type: 'soft' },
+          { tag: 'admins', title: 'Администраторы', text: 'Служебный уровень с полным кругом ответственности и прав по управлению режимом системы.', badge: 'AD', type: 'gold' }
+        ]
+      },
+      violations: {
+        label: 'Нарушения',
+        heroTitle: 'Нарушения <span class="accent">и реакции</span>',
+        subtitle: 'Быстрая фиксация инцидентов, работа с предупреждениями и поддержание порядка через чёткие правила.',
+        chips: ['Проверка', 'Решение', 'Контроль'],
+        cards: [
+          { tag: 'warn', title: 'Предупреждения', text: 'Мягкая система замечаний позволяет оперативно реагировать на проблемы без лишней напряжённости.', badge: 'W', type: 'soft' },
+          { tag: 'report', title: 'Жалобы', text: 'Служебный формат обращений позволяет фиксировать проблему, причину и корректную реакцию команды.', badge: 'R', type: 'gold' },
+          { tag: 'audit', title: 'Аудит', text: 'Отслеживание повторных нарушений и распределение ответственности между участниками.', badge: 'A', type: 'soft' },
+          { tag: 'case', title: 'Кейсы', text: 'Детализация событий и корректное закрытие вопросов в рамках внутреннего регламента.', badge: 'C', type: 'gold' }
+        ]
+      },
+      system: {
+        label: 'Система',
+        heroTitle: 'Служебная <span class="accent">система</span>',
+        subtitle: 'Статус платформы, исправность сервисов и актуальная сводка по внутренним модулям проекта.',
+        chips: ['Проверка', 'Сервис', 'Режим'],
+        cards: [
+          { tag: 'status', title: 'Состояние', text: 'Панель статусов отражает текущую ситуацию по сервисам и уровню доступности процессов.', badge: 'OK', type: 'gold' },
+          { tag: 'links', title: 'Связь', text: 'Доступ к основным каналам, связям и проходам обмена внутренней информации.', badge: 'NET', type: 'soft' },
+          { tag: 'logs', title: 'Логи', text: 'Запись действий и заметки по актуальным событиям позволяют не терять контекст.', badge: 'LOG', type: 'soft' },
+          { tag: 'backup', title: 'Резерв', text: 'Резервные скрипты и внутренние копии обеспечивают устойчивость рабочего режима.', badge: 'BKP', type: 'gold' }
+        ]
+      }
+    };
+
+    function getVisibleCards() {
+      const q = state.query.trim().toLowerCase();
+      const current = tabs[state.activeTab];
+
+      return current.cards.filter(card => {
+        if (!q) return true;
+        const text = [card.tag, card.title, card.text, card.badge].join(' ').toLowerCase();
+        return text.includes(q);
+      });
+    }
+
+    function render() {
+      const activeTab = tabs[state.activeTab];
+      const nav = Object.entries(tabs).map(([key, item]) => `
+        <button class="tab ${state.activeTab === key ? 'active' : ''}" data-tab="${key}">${item.label}</button>
+      `).join('');
+
+      const visibleCards = getVisibleCards();
+      const cards = visibleCards.length
+        ? visibleCards.map(card => `
+            <article class="panel-card ${card.type === 'gold' ? 'gold' : ''}">
+              <div class="card-top">
+                <span class="card-tag">${card.tag}</span>
+                <span class="card-badge">${card.badge}</span>
+              </div>
+              <h3>${card.title}</h3>
+              <p>${card.text}</p>
+            </article>
+          `).join('')
+        : '<div class="empty">Ничего не найдено по вашему запросу.</div>';
+
+      document.getElementById('app').innerHTML = `
+        <div class="shell">
+          <header class="topbar">
+            <div class="brand">
+              <div class="brand-mark">🍊</div>
+              <div class="brand-text">
+                <div class="brand-name">Mandarin Games</div>
+                <div class="brand-sub">Administration</div>
+              </div>
+            </div>
+            <nav class="tabs" aria-label="Основные разделы">
+              ${nav}
+            </nav>
+          </header>
+
+          <div class="content-wrap">
+            <div class="hero">
+              <section class="hero-panel">
+                <div class="eyebrow">${activeTab.label}</div>
+                <h1>${activeTab.heroTitle}</h1>
+                <div class="subtitle">${activeTab.subtitle}</div>
+                <div class="utility-row">
+                  ${activeTab.chips.map(chip => `<span class="chip ${chip === 'Онлайн 24/7' ? 'notice' : 'good'}">${chip}</span>`).join('')}
+                </div>
+              </section>
+
+              <aside class="side-panel">
+                <div class="status-box">
+                  <div>
+                    <div class="status-label">Status</div>
+                    <div class="status-value">Служба активна</div>
+                  </div>
+                  <div class="status-dot"></div>
+                </div>
+
+                <div class="status-box">
+                  <div>
+                    <div class="status-label">Team</div>
+                    <div class="status-value">Mandarin Games</div>
+                  </div>
+                </div>
+
+                <div class="status-box">
+                  <div>
+                    <div class="status-label">Mode</div>
+                    <div class="status-value">Soft admin</div>
+                  </div>
+                </div>
+              </aside>
+            </div>
+
+            <div class="search-wrap" aria-label="Поиск по разделу">
+              <span>⌕</span>
+              <input id="searchInput" type="text" value="${state.query}" placeholder="Поиск по разделу..." autocomplete="off" />
+            </div>
+
+            <div class="cards-grid">
+              ${cards}
+            </div>
+          </div>
+        </div>
+      `;
+
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+        searchInput.addEventListener('input', (event) => {
+          state.query = event.target.value;
+          render();
+        });
+      }
+
+      document.querySelectorAll('[data-tab]').forEach(button => {
+        button.addEventListener('click', () => {
+          state.activeTab = button.dataset.tab;
+          state.query = '';
+          history.replaceState(null, '', '#' + state.activeTab);
+          render();
+        });
+      });
+    }
+
+    const initialHash = (window.location.hash || '').replace('#', '');
+    if (tabs[initialHash]) state.activeTab = initialHash;
+
+    render();
+  </script>
+</body>
+</html>
