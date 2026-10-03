@@ -390,6 +390,81 @@
     .development h2 { margin: 0 0 6px; font-size: 20px; }
     .development p { margin: 0; color: var(--muted); font-size: 14px; }
 
+    .auth-page {
+      min-height: calc(100vh - 52px);
+      display: grid;
+      place-items: center;
+      padding: 24px 16px;
+    }
+
+    .auth-card {
+      width: min(460px, 100%);
+      padding: 32px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(14, 21, 27, 0.94);
+      box-shadow: 0 24px 60px var(--shadow);
+    }
+
+    .auth-card h1 { font-size: 30px; line-height: 1.12; }
+    .auth-intro { margin: 10px 0 22px; color: var(--muted); line-height: 1.6; font-size: 14px; }
+    .provider-list { display: grid; gap: 10px; }
+
+    .provider-button,
+    .enter-button,
+    .copy-button,
+    .logout-button {
+      min-height: 44px;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      padding: 10px 14px;
+      color: var(--text);
+      background: var(--soft);
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .provider-button { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .provider-button:hover, .copy-button:hover { border-color: rgba(245, 203, 139, 0.42); }
+    .provider-state { color: var(--muted); font-size: 12px; }
+    .provider-button.connected .provider-state { color: var(--green); }
+    .auth-disclaimer { margin: 18px 0 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .enter-button { width: 100%; margin-top: 14px; text-align: center; background: rgba(245, 203, 139, 0.12); }
+    .enter-button:disabled { cursor: not-allowed; opacity: 0.45; }
+    .logout-button { min-height: 36px; padding: 7px 11px; font-size: 12px; }
+
+    .cassie-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(14, 21, 27, 0.8);
+      overflow: hidden;
+    }
+
+    .cassie-card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 20px 22px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .cassie-card-head h2 { margin: 0 0 7px; font-size: 21px; }
+    .cassie-card-head p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+    .copy-button { flex: 0 0 auto; text-align: center; }
+
+    .cassie-message {
+      max-height: 440px;
+      overflow: auto;
+      margin: 0;
+      padding: 20px 22px;
+      color: #e4e9e5;
+      font: 13px/1.8 'JetBrains Mono', 'SFMono-Regular', monospace;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      user-select: text;
+    }
+
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -475,6 +550,10 @@
       .topbar { padding: 14px 16px; }
       .brand-name { letter-spacing: 0.06em; }
       .development { min-height: 150px; padding: 20px; }
+      .auth-card { padding: 24px 20px; }
+      .cassie-card-head { flex-direction: column; }
+      .copy-button { width: 100%; }
+      .cassie-message { max-height: 55vh; padding: 16px; font-size: 11px; }
     }
   </style>
 </head>
@@ -487,14 +566,66 @@
       guide: { label: 'Руководство', title: 'Руководство отдела', subtitle: 'Материалы и инструкции администрации.' },
       staff: { label: 'Персонал', title: 'Персонал проекта', subtitle: 'Состав администрации и распределение ролей.' },
       violations: { label: 'Таблица частых нарушителей', title: 'Частые нарушители', subtitle: 'Таблица учёта нарушений администрации Minecraft.' },
-      cassie: { label: 'C.A.S.S.I.E.', title: 'C.A.S.S.I.E.', subtitle: 'Раздел C.A.S.S.I.E. администрации проекта.' }
+      cassie: { label: 'C.A.S.S.I.E.', title: 'C.A.S.S.I.E.', subtitle: 'Оповещения для персонала комплекса.' }
     };
+
+    const cassieMessage = String.raw`Cassieadvanced custom true 35 <split><split><size=21><b><color=#646eff>НОУС</color> | Внимание всему персоналу комплекса: <size=0></b>.........................................................................................................................................<size=21><b>На территории зоны замечено <color=#ff4747>Н</color>арушение <color=#ff4747>О</color>собых <color=#ff4747>У</color>словий <color=#ff4747>С</color>одержания(<color=#ff4747>НОУС</color>) [2] <color=red>SCP-объекта</color> класса <color=red>“Кетер”</color> и <color=#ffcc00>“Евклид”.</color> <size=0></b>............................................................................................................................................................................................................................................................................................................................................<size=21><b>Всему персоналу требуется немедленно пройти в <color=#008a05>безопасные зоны</color> и ожидать дальнейших указаний <color=#919191>Службы Безопасности. <size=0> $pitch_0.3 .g4 .g4 .g4 $pitch_0.9 attention . to all facility personnel . inside the complex detected containment breach 2 SCPSubject _SUFFIX_PLURAL_REGULAR class Keter and Euclid . $pitch_0.8 attention to all personnel . report a near _SUFFIX_EST safe area and wait other order _SUFFIX_PLURAL_REGULAR by security personnel . $pitch_0.3 .g5 $pitch_0.2 .g5`;
 
     const state = {
       activePage: 'home',
       query: '',
-      searchTimer: null
+      searchTimer: null,
+      authenticated: false,
+      providers: { google: false, steam: false }
     };
+
+    function escapeHtml(value) {
+      return value.replace(/[&<>"']/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[character]);
+    }
+
+    function renderAuth() {
+      document.getElementById('app').innerHTML = `
+        <main class="auth-page">
+          <section class="auth-card" aria-labelledby="loginTitle">
+            <div class="brand-mark">🍊</div>
+            <div class="eyebrow">Mandarin Games · Minecraft</div>
+            <h1 id="loginTitle">Вход в кабинет</h1>
+            <p class="auth-intro">Для продолжения подключите Google и Steam.</p>
+            <div class="provider-list">
+              <button class="provider-button ${state.providers.google ? 'connected' : ''}" data-provider="google">
+                <span>Продолжить с Google</span>
+                <span class="provider-state">${state.providers.google ? 'Подключён (демо)' : 'Не подключён'}</span>
+              </button>
+              <button class="provider-button ${state.providers.steam ? 'connected' : ''}" data-provider="steam">
+                <span>Продолжить со Steam</span>
+                <span class="provider-state">${state.providers.steam ? 'Подключён (демо)' : 'Не подключён'}</span>
+              </button>
+            </div>
+            <p class="auth-disclaimer">Демо-режим: кнопки показывают макет входа, но не выполняют реальную проверку аккаунтов. Для настоящей авторизации требуется настроить Google OAuth и Steam OpenID на сервере.</p>
+            <button class="enter-button" data-enter ${state.providers.google && state.providers.steam ? '' : 'disabled'}>Открыть кабинет</button>
+          </section>
+        </main>
+      `;
+
+      document.querySelectorAll('[data-provider]').forEach(button => {
+        button.addEventListener('click', () => {
+          state.providers[button.dataset.provider] = true;
+          renderAuth();
+        });
+      });
+
+      document.querySelector('[data-enter]').addEventListener('click', () => {
+        if (!state.providers.google || !state.providers.steam) return;
+        state.authenticated = true;
+        render();
+      });
+    }
 
     function renderSearchResults() {
       const query = state.query.trim().toLocaleLowerCase('ru');
@@ -542,6 +673,7 @@
               </div>
             </div>
             <nav class="tabs" aria-label="Основные разделы">${nav}</nav>
+            <button class="logout-button" data-logout>Выйти</button>
           </header>
           <div class="content-wrap">
             <section class="hero-panel">
@@ -554,13 +686,26 @@
               <input id="searchInput" type="search" placeholder="Поиск по разделам..." autocomplete="off" />
             </div>
             <div id="searchResults" class="search-results" hidden></div>
-            <section class="development" aria-live="polite">
-              <span class="development-mark">✦</span>
-              <div>
-                <h2>В разработке</h2>
-                <p>Этот раздел появится позже.</p>
-              </div>
-            </section>
+            ${state.activePage === 'cassie' ? `
+              <article class="cassie-card">
+                <header class="cassie-card-head">
+                  <div>
+                    <h2>НОУС 2 — «Кетер» и «Евклид»</h2>
+                    <p>Оповещение персоналу комплекса о нарушении особых условий содержания.</p>
+                  </div>
+                  <button class="copy-button" data-copy>Копировать сообщение</button>
+                </header>
+                <pre class="cassie-message"><code>${escapeHtml(cassieMessage)}</code></pre>
+              </article>
+            ` : `
+              <section class="development" aria-live="polite">
+                <span class="development-mark">✦</span>
+                <div>
+                  <h2>В разработке</h2>
+                  <p>Этот раздел появится позже.</p>
+                </div>
+              </section>
+            `}
           </div>
         </div>
       `;
@@ -580,11 +725,37 @@
         window.clearTimeout(state.searchTimer);
         state.searchTimer = window.setTimeout(renderSearchResults, 300);
       });
+
+      document.querySelector('[data-logout]').addEventListener('click', () => {
+        state.authenticated = false;
+        state.providers = { google: false, steam: false };
+        renderAuth();
+      });
+
+      const copyButton = document.querySelector('[data-copy]');
+      if (copyButton) {
+        copyButton.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(cassieMessage);
+          } catch {
+            const temporaryInput = document.createElement('textarea');
+            temporaryInput.value = cassieMessage;
+            temporaryInput.style.position = 'fixed';
+            temporaryInput.style.opacity = '0';
+            document.body.append(temporaryInput);
+            temporaryInput.select();
+            document.execCommand('copy');
+            temporaryInput.remove();
+          }
+          copyButton.textContent = 'Скопировано';
+          window.setTimeout(() => { copyButton.textContent = 'Копировать сообщение'; }, 1800);
+        });
+      }
     }
 
     const initialPage = window.location.hash.slice(1);
     if (pages[initialPage]) state.activePage = initialPage;
-    render();
+    state.authenticated ? render() : renderAuth();
   </script>
 </body>
 </html>
