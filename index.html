@@ -137,22 +137,29 @@
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      flex-wrap: wrap;
-      gap: 8px;
+      flex-wrap: nowrap;
+      gap: 5px;
       min-width: 0;
+      flex: 1;
+      overflow-x: auto;
+      scrollbar-width: none;
     }
+
+    .tabs::-webkit-scrollbar { display: none; }
 
     .tab {
       border: 1px solid transparent;
       background: rgba(255,255,255,0.02);
       color: rgba(255,255,255,0.8);
-      padding: 9px 14px;
+      padding: 8px 11px;
       border-radius: 999px;
       cursor: pointer;
       transition: 0.2s ease;
-      font-size: 11px;
+      font-size: 10px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
+      white-space: nowrap;
+      flex: 0 0 auto;
     }
 
     .tab:hover {
@@ -169,6 +176,15 @@
     .content-wrap {
       padding: 24px;
     }
+
+    .hero-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .hero-head .eyebrow { margin-top: 7px; }
 
     .hero {
       display: grid;
@@ -434,13 +450,16 @@
     .logout-button { min-height: 36px; padding: 7px 11px; font-size: 12px; }
 
     .cassie-card {
+      position: relative;
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      background: rgba(14, 21, 27, 0.8);
+      background: radial-gradient(ellipse at 92% 0%, rgba(245, 166, 78, 0.12), transparent 34%), rgba(14, 21, 27, 0.88);
+      border-color: rgba(245, 203, 139, 0.18);
       overflow: hidden;
     }
 
     .cassie-card-head {
+      position: relative;
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
@@ -449,9 +468,48 @@
       border-bottom: 1px solid var(--line);
     }
 
+    .cassie-card-head::after {
+      content: "🍊";
+      position: absolute;
+      top: 50%;
+      right: 205px;
+      transform: translateY(-50%);
+      font-size: 72px;
+      opacity: 0.075;
+      pointer-events: none;
+    }
+
     .cassie-card-head h2 { margin: 0 0 7px; font-size: 21px; }
     .cassie-card-head p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
-    .copy-button { flex: 0 0 auto; text-align: center; }
+    .copy-button {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex: 0 0 auto;
+      text-align: center;
+      border-color: rgba(245, 183, 102, 0.28);
+      background: linear-gradient(135deg, rgba(245, 183, 102, 0.17), rgba(245, 203, 139, 0.07));
+      box-shadow: 0 5px 18px rgba(245, 157, 64, 0.08);
+      transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .copy-button:hover {
+      background: linear-gradient(135deg, rgba(245, 183, 102, 0.27), rgba(245, 203, 139, 0.12));
+      box-shadow: 0 8px 22px rgba(245, 157, 64, 0.16);
+      transform: translateY(-1px);
+    }
+
+    .copy-button:active { transform: scale(0.98); }
+    .copy-icon { color: var(--gold); font-size: 18px; line-height: 1; }
+    .copy-button.copied { border-color: rgba(139, 217, 183, 0.4); }
+    .copy-button.copied .copy-icon { color: var(--green); animation: copyConfirm 0.35s ease; }
+
+    @keyframes copyConfirm {
+      50% { transform: scale(1.25); }
+    }
 
     .cassie-message {
       max-height: 440px;
@@ -540,7 +598,7 @@
       .hero { grid-template-columns: 1fr; }
       .cards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .topbar { flex-direction: column; align-items: flex-start; }
-      .tabs { justify-content: flex-start; }
+      .tabs { width: 100%; justify-content: flex-start; }
     }
 
     @media (max-width: 620px) {
@@ -553,6 +611,7 @@
       .auth-card { padding: 24px 20px; }
       .cassie-card-head { flex-direction: column; }
       .copy-button { width: 100%; }
+      .cassie-card-head::after { right: 12px; top: 22px; font-size: 54px; }
       .cassie-message { max-height: 55vh; padding: 16px; font-size: 11px; }
     }
   </style>
@@ -673,11 +732,13 @@
               </div>
             </div>
             <nav class="tabs" aria-label="Основные разделы">${nav}</nav>
-            <button class="logout-button" data-logout>Выйти</button>
           </header>
           <div class="content-wrap">
             <section class="hero-panel">
-              <div class="eyebrow">${page.label}</div>
+              <div class="hero-head">
+                <div class="eyebrow">${page.label}</div>
+                <button class="logout-button" data-logout>Выйти</button>
+              </div>
               <h1>${page.title}</h1>
               <div class="subtitle">${page.subtitle}</div>
             </section>
@@ -693,7 +754,7 @@
                     <h2>НОУС 2 — «Кетер» и «Евклид»</h2>
                     <p>Оповещение персоналу комплекса о нарушении особых условий содержания.</p>
                   </div>
-                  <button class="copy-button" data-copy>Копировать сообщение</button>
+                  <button class="copy-button" data-copy><span class="copy-icon" aria-hidden="true">⧉</span><span class="copy-label">Копировать текст</span></button>
                 </header>
                 <pre class="cassie-message"><code>${escapeHtml(cassieMessage)}</code></pre>
               </article>
@@ -747,8 +808,12 @@
             document.execCommand('copy');
             temporaryInput.remove();
           }
-          copyButton.textContent = 'Скопировано';
-          window.setTimeout(() => { copyButton.textContent = 'Копировать сообщение'; }, 1800);
+          copyButton.classList.add('copied');
+          copyButton.querySelector('.copy-label').textContent = 'Текст скопирован';
+          window.setTimeout(() => {
+            copyButton.classList.remove('copied');
+            copyButton.querySelector('.copy-label').textContent = 'Копировать текст';
+          }, 1800);
         });
       }
     }
