@@ -509,6 +509,30 @@
 
     .table-scroll { overflow: auto; max-height: min(68vh, 680px); }
 
+    .staff-table-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .staff-filter {
+      width: min(340px, 100%);
+      padding: 9px 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      outline: none;
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      font: inherit;
+      font-size: 12px;
+    }
+
+    .staff-filter:focus { border-color: rgba(245, 203, 139, 0.48); }
+    .staff-save-status { color: var(--muted); font-size: 11px; text-align: right; }
+
     .data-table {
       width: 100%;
       border-collapse: collapse;
@@ -537,6 +561,11 @@
       border: 1px solid rgba(255,255,255,0.07);
       color: var(--muted);
     }
+
+    .data-table.staff-table td[contenteditable="true"] { min-width: 110px; cursor: text; }
+    .data-table.staff-table td[contenteditable="true"]:focus { outline: 2px solid rgba(245, 203, 139, 0.5); outline-offset: -2px; background: rgba(245, 203, 139, 0.07); color: var(--text); }
+    .data-table.staff-table td:first-child { position: sticky; left: 0; z-index: 1; background: #182128; color: var(--text); text-align: center; }
+    .data-table.staff-table th:first-child { left: 0; z-index: 3; }
 
     .data-table tbody tr:nth-child(even) { background: rgba(255,255,255,0.025); }
 
@@ -784,6 +813,29 @@
     const staffSearchText = 'DiscordName DiscordID Discord SteamID должность слоты отпуск время от МСК фан-режим варны варн ожидание поступление повышение расписание понедельник вторник среда четверг пятница суббота воскресенье начало стажировки окончание стажировки';
     const staffColumns = ['№', 'DiscordName', 'DiscordID', 'SteamID', 'Должность', 'Слоты', 'Отпуск', 'Время от МСК', 'Фан-режим', 'Варны', 'Варн №1 выдан', 'Ожидание №1 до', 'Варн №2 выдан', 'Ожидание №2 до', 'Поступление', 'Повышение', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье', 'Начало стажировки', 'Окончание стажировки'];
     const violationsColumns = ['№', 'Никнейм', 'SteamID', 'Баны', 'Комментарий', 'Минимальный срок бана', 'Поставлен на учёт', 'Последний бан'];
+    const staffStorageKey = 'mandarin-mrp-staff-table';
+
+    function loadStaffData() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(staffStorageKey) || '{}');
+        return saved && typeof saved === 'object' ? saved : {};
+      } catch {
+        return {};
+      }
+    }
+
+    function renderStaffTable() {
+      const rows = Array.from({ length: 200 }, (_, rowIndex) => {
+        const cells = staffColumns.slice(1).map((column, columnIndex) => {
+          const cellKey = `${rowIndex}:${columnIndex + 1}`;
+          const value = escapeHtml(String(state.staffData[cellKey] || ''));
+          return `<td contenteditable="true" spellcheck="false" role="textbox" aria-label="${column}, строка ${rowIndex + 1}" data-staff-cell="${cellKey}">${value}</td>`;
+        }).join('');
+        return `<tr data-staff-row><td>${rowIndex + 1}</td>${cells}</tr>`;
+      }).join('');
+
+      return `<div class="staff-table-toolbar"><input class="staff-filter" id="staffFilter" type="search" placeholder="Поиск по заполненным строкам..." autocomplete="off"><span class="staff-save-status" id="staffSaveStatus" aria-live="polite">Изменения сохраняются в этом браузере</span></div><div class="table-scroll"><table id="staffTable" class="data-table staff-table"><thead><tr>${staffColumns.map(column => `<th scope="col">${column}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+    }
 
     function renderDataTable(columns, tableClass, emptyMessage) {
       return `<div class="table-scroll"><table class="data-table ${tableClass}"><thead><tr>${columns.map(column => `<th scope="col">${column}</th>`).join('')}</tr></thead><tbody><tr><td class="table-empty" colspan="${columns.length}">${emptyMessage}</td></tr></tbody></table></div>`;
@@ -793,6 +845,7 @@
       activePage: 'home',
       query: '',
       searchTimer: null,
+      staffData: loadStaffData(),
       authenticated: false,
       providers: { google: false, steam: false }
     };
@@ -913,9 +966,9 @@
             <div id="searchResults" class="search-results" hidden></div>
             ${state.activePage === 'staff' ? `
               <section class="data-table-card" aria-label="Таблица персонала">
-                <header class="data-table-head"><h2>Таблица администрации Mandarin RU Medium RP</h2><a class="download-template" href="./personnel-medium-rp.xlsx" download>Скачать Excel</a></header>
-                ${renderDataTable(staffColumns, 'staff-table', 'Записи сотрудников появятся после импорта исходной таблицы.')}
-                <div class="table-footnote">Excel-шаблон включает все столбцы и 200 строк для заполнения. Данные из скриншота не перенесены: для точного импорта нужен исходный XLSX/CSV.</div>
+                <header class="data-table-head"><h2>Таблица администрации Mandarin RU Medium RP</h2><a class="download-template" href="./personnel-medium-rp.xlsx" download>Excel-шаблон</a></header>
+                ${renderStaffTable()}
+                <div class="table-footnote">Заполняй таблицу прямо здесь. Изменения сохраняются локально в этом браузере и не синхронизируются с другими сотрудниками. Реальные данные со скриншота не импортированы.</div>
               </section>
             ` : state.activePage === 'violations' ? `
               <section class="data-table-card" aria-label="Таблица частых нарушителей">
@@ -1008,6 +1061,28 @@
         window.clearTimeout(state.searchTimer);
         state.searchTimer = window.setTimeout(renderSearchResults, 300);
       });
+
+      const staffTable = document.getElementById('staffTable');
+      if (staffTable) {
+        staffTable.addEventListener('input', event => {
+          const cell = event.target.closest('[data-staff-cell]');
+          if (!cell) return;
+          state.staffData[cell.dataset.staffCell] = cell.textContent.trim();
+          try {
+            localStorage.setItem(staffStorageKey, JSON.stringify(state.staffData));
+            document.getElementById('staffSaveStatus').textContent = 'Сохранено в этом браузере';
+          } catch {
+            document.getElementById('staffSaveStatus').textContent = 'Автосохранение недоступно';
+          }
+        });
+
+        document.getElementById('staffFilter').addEventListener('input', event => {
+          const query = event.target.value.trim().toLocaleLowerCase('ru');
+          staffTable.querySelectorAll('[data-staff-row]').forEach(row => {
+            row.hidden = Boolean(query) && !row.textContent.toLocaleLowerCase('ru').includes(query);
+          });
+        });
+      }
 
       document.querySelector('[data-logout]').addEventListener('click', () => {
         state.authenticated = false;
