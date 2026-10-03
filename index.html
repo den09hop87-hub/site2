@@ -406,6 +406,62 @@
     .development h2 { margin: 0 0 6px; font-size: 20px; }
     .development p { margin: 0; color: var(--muted); font-size: 14px; }
 
+    .guide-document {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 4px 10px;
+    }
+
+    .guide-section {
+      padding: 20px 0;
+      border-bottom: 1px solid var(--line-strong);
+    }
+
+    .guide-section h2 {
+      margin: 0 0 18px;
+      color: var(--gold-strong);
+      font-size: 23px;
+      font-weight: 600;
+    }
+
+    .guide-section h3 {
+      margin: 18px 0 8px;
+      color: #9cdb72;
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .guide-section p,
+    .guide-section li {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .guide-section p { margin: 8px 0; }
+    .guide-section ol, .guide-section ul { padding-left: 24px; }
+
+    .hierarchy {
+      max-width: 360px;
+      margin: 18px auto;
+      padding: 0;
+      list-style: none;
+      text-align: center;
+    }
+
+    .hierarchy li { padding: 5px 0; }
+    .hierarchy li:not(:last-child)::after { content: "↓"; display: block; color: var(--muted); padding-top: 5px; }
+
+    .guide-note {
+      margin: 20px 0 0;
+      padding: 16px 18px;
+      border: 1px solid rgba(245, 203, 139, 0.24);
+      border-radius: 14px;
+      background: rgba(245, 203, 139, 0.07);
+      color: #ffe5bd;
+      line-height: 1.6;
+    }
+
     .auth-page {
       min-height: calc(100vh - 52px);
       display: grid;
@@ -622,13 +678,15 @@
   <script>
     const pages = {
       home: { label: 'Главная', title: 'Администрация Minecraft', subtitle: 'Рабочее пространство администрации проекта Mandarin Games.' },
-      guide: { label: 'Руководство', title: 'Руководство отдела', subtitle: 'Материалы и инструкции администрации.' },
+      guide: { label: 'Руководство', title: 'Руководство отдела Medium RP', subtitle: 'Основные положения, иерархия и правила администрации.' },
       staff: { label: 'Персонал', title: 'Персонал проекта', subtitle: 'Состав администрации и распределение ролей.' },
       violations: { label: 'Таблица частых нарушителей', title: 'Частые нарушители', subtitle: 'Таблица учёта нарушений администрации Minecraft.' },
       cassie: { label: 'C.A.S.S.I.E.', title: 'C.A.S.S.I.E.', subtitle: 'Оповещения для персонала комплекса.' }
     };
 
     const cassieMessage = String.raw`Cassieadvanced custom true 35 <split><split><size=21><b><color=#646eff>НОУС</color> | Внимание всему персоналу комплекса: <size=0></b>.........................................................................................................................................<size=21><b>На территории зоны замечено <color=#ff4747>Н</color>арушение <color=#ff4747>О</color>собых <color=#ff4747>У</color>словий <color=#ff4747>С</color>одержания(<color=#ff4747>НОУС</color>) [2] <color=red>SCP-объекта</color> класса <color=red>“Кетер”</color> и <color=#ffcc00>“Евклид”.</color> <size=0></b>............................................................................................................................................................................................................................................................................................................................................<size=21><b>Всему персоналу требуется немедленно пройти в <color=#008a05>безопасные зоны</color> и ожидать дальнейших указаний <color=#919191>Службы Безопасности. <size=0> $pitch_0.3 .g4 .g4 .g4 $pitch_0.9 attention . to all facility personnel . inside the complex detected containment breach 2 SCPSubject _SUFFIX_PLURAL_REGULAR class Keter and Euclid . $pitch_0.8 attention to all personnel . report a near _SUFFIX_EST safe area and wait other order _SUFFIX_PLURAL_REGULAR by security personnel . $pitch_0.3 .g5 $pitch_0.2 .g5`;
+
+    const guideSearchText = `Введение. Назначение документа. Настоящее руководство определяет структуру, обязанности, стандарты работы и процедуры сотрудников администрации MediumRP. Фан-системы, нарушения, игровое сообщество, отчётность, таблица частых нарушителей, операторы C.A.S.S.I.E. Цель администрации — стабильная честная интересная игровая среда, баланс MediumRP и игрового процесса, профессиональная атмосфера. Иерархия и подчинение: Глава отдела ГО, заместитель главы ЗГО, старший администратор, администратор, старший модератор, модератор, стажёр. Приказы вышестоящих обязательны, обжалование руководству. Уровни доступа и повышения: стажёр, модератор, повышение за месяц без взысканий, повышение за заслуги, одобрение руководства, испытательный срок, отказ. Права администрации MRP. Правила фан-режима. Noclip запрещено частое использование, разрешено для технических неполадок и помощи игрокам. Админ-панель, злоупотребление, личная выгода, дискомфорт, ролевой процесс RP, выдача предметов, эффекты, санкции, предупреждения, выговоры, варны. Полный перечень прав в разработке. Остальное руководство в разработке.`;
 
     const state = {
       activePage: 'home',
@@ -697,9 +755,12 @@
         return;
       }
 
-      const matches = Object.entries(pages).filter(([, page]) =>
-        `${page.label} ${page.title} ${page.subtitle}`.toLocaleLowerCase('ru').includes(query)
-      );
+      const matches = Object.entries(pages).filter(([key, page]) => {
+        const fullText = [page.label, page.title, page.subtitle];
+        if (key === 'guide') fullText.push(guideSearchText);
+        if (key === 'cassie') fullText.push(cassieMessage);
+        return fullText.join(' ').toLocaleLowerCase('ru').includes(query);
+      });
 
       results.hidden = false;
       results.innerHTML = matches.length
@@ -747,7 +808,53 @@
               <input id="searchInput" type="search" placeholder="Поиск по разделам..." autocomplete="off" />
             </div>
             <div id="searchResults" class="search-results" hidden></div>
-            ${state.activePage === 'cassie' ? `
+            ${state.activePage === 'guide' ? `
+              <article class="guide-document">
+                <section class="guide-section">
+                  <h2>1. Введение</h2>
+                  <h3>1.1 Назначение документа</h3>
+                  <p>Настоящее руководство определяет структуру, обязанности, стандарты работы и процедуры для сотрудников администрации отдела MediumRP. Документ регламентирует правила использования фан-систем, порядок работы с нарушениями, взаимодействие с игровым сообществом и ведение отчётности, включая таблицу частых нарушителей и работу операторов C.A.S.S.I.E. Руководство обязательно для ознакомления и исполнения всеми сотрудниками отдела.</p>
+                  <h3>1.2 Задача администрации</h3>
+                  <p>Обеспечение стабильной, честной и интересной игровой среды, соблюдение баланса между ролевой составляющей MediumRP и игровым процессом, поддержание позитивной и профессиональной атмосферы в команде и сообществе.</p>
+                </section>
+                <section class="guide-section">
+                  <h2>2. Структура администрации и иерархия</h2>
+                  <h3>2.1 Иерархия и подчинение</h3>
+                  <p>Каждый участник администрации обязан соблюдать установленную иерархию:</p>
+                  <ol class="hierarchy">
+                    <li>Глава отдела (ГО)</li>
+                    <li>Заместитель главы отдела (ЗГО)</li>
+                    <li>Старший администратор</li>
+                    <li>Администратор</li>
+                    <li>Старший модератор</li>
+                    <li>Модератор</li>
+                    <li>Стажёр</li>
+                  </ol>
+                  <p>Приказы вышестоящего сотрудника обязательны к исполнению. Если приказ кажется некомпетентным или чрезмерно жёстким, его можно обжаловать напрямую руководству отдела.</p>
+                  <h3>2.2 Уровни доступа и повышения</h3>
+                  <p>Стажёр начинает с ограниченного набора прав. Модератор и старшие должности получают расширенный доступ к инструментам администрирования.</p>
+                  <ol>
+                    <li>Гарантированное повышение рассматривается после месяца работы без предупреждений, выговоров и других взысканий.</li>
+                    <li>Повышение за заслуги возможно в любое время при отсутствии взысканий и с одобрения руководства.</li>
+                  </ol>
+                  <p>Любое повышение требует одобрения руководства отдела. При небольших недочётах может быть назначен дополнительный срок на исправление или отказано в повышении.</p>
+                </section>
+                <section class="guide-section">
+                  <h2>3. Права и правила использования фан-системы</h2>
+                  <h3>3.1 Права администрации MRP</h3>
+                  <p>Полный перечень прав и разрешённых действий будет добавлен отдельно. Этот раздел пока в разработке.</p>
+                  <h3>3.2 Правила фан-режима</h3>
+                  <ol>
+                    <li><strong>Режим Noclip:</strong> запрещено произвольное и частое использование. Он допустим для решения технических неполадок или оказания помощи игрокам.</li>
+                    <li><strong>Админ-панель:</strong> запрещено злоупотреблять инструментами и использовать полномочия в личных целях или для создания дискомфорта.</li>
+                    <li><strong>Игровой процесс:</strong> нельзя сознательно препятствовать RP или иным игровым процессам других игроков.</li>
+                    <li><strong>Игровой контент:</strong> запрещена выдача предметов, эффектов и подобных элементов без веской причины.</li>
+                    <li><strong>Ответственность:</strong> за нарушения применяются санкции, начиная с предупреждений и выговоров.</li>
+                  </ol>
+                </section>
+                <p class="guide-note"><strong>Это ещё не всё руководство.</strong> Остальные разделы и полный перечень правил будут добавлены позже. Сейчас они находятся в разработке.</p>
+              </article>
+            ` : state.activePage === 'cassie' ? `
               <article class="cassie-card">
                 <header class="cassie-card-head">
                   <div>
